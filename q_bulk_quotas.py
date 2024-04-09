@@ -71,6 +71,28 @@ def qumulo_get(addr, api):
 def get_node_addr(addr_list):
     return(randrange(len(addr_list)))
 
+def compute_quota (quota):
+    if quota[-1].isalpha():
+        unit = quota[-1]
+        size = int(quota[:-1])
+        if unit in ('g','G'):
+            size = size * 1000000000
+        elif unit in ('t', 'T'):
+            size = size * 1000000000000
+        elif unit in ('p', 'P'):
+            size = size * 1000000000000000
+        elif unit in ('m', 'M'):
+            size = size * 1000000
+        elif unit in ('k', 'K'):
+            size = size * 1000
+        else:
+            sys.stderr(write("Accetbale unit sizes are 'K', 'M', 'G', 'T', 'P' case insentive"))
+            exit(1)
+    else:
+        size = quota
+    dprint("QUOTA SIZE = " + str(size))
+    return(size)
+
 if __name__ == "__main__":
     DEBUG = False
     token = ""
@@ -106,6 +128,7 @@ if __name__ == "__main__":
         quota = args[1]
     except:
         usage()
+    quota = compute_quota(quota)
     auth = api_login(qumulo, user, password, token)
     dprint(str(auth))
     net_data = requests.get('https://' + qumulo + '/v2/network/interfaces/1/status/', headers=auth,
@@ -150,7 +173,7 @@ if __name__ == "__main__":
             top_dir = qumulo_get(addr_list[get_node_addr(addr_list)]['address'], next)
             if top_dir == "404":
                 print("GOT 404 in else loop: " + + top_id)
-#        pp.pprint(top_dir)
+        pp.pprint(top_dir)
         for dirent in top_dir['files']:
             if dirent['type'] == "FS_FILE_TYPE_DIRECTORY":
                 dir_list[dirent['path']] = {'name': dirent['name'], 'id': dirent['id']}
@@ -160,4 +183,3 @@ if __name__ == "__main__":
                 done = True
         except:
             done = True
-    pp.pprint(dir_list)
