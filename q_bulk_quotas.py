@@ -14,7 +14,14 @@ pp = pprint.PrettyPrinter(indent=4)
 
 
 def usage():
-    print("Usage goes here!")
+    sys.stderr.write("Usage: q_bulk_quotas.py [-hD] [-c creds] [-t token] [-e exceptions] qumulo:path quota \n")
+    sys.stderr.write("-h | --help : Show help/usage\n")
+    sys.stderr.write('-D | --DEBUG : dump debug info\n')
+    sys.stderr.write('-c | --creds : Login credentials format user:password\n')
+    sys.stderr.write('-t | --token : Use an auth token\n')
+    sys.stderr.write('-e | --exceptions : Read exceptions from a given file\n')
+    sys.stderr.write('qumulo:path : Name or IP address of a Qumulo node and the parent path of the quotas [colon speparted]\n')
+    sys.stderr.write('quota : Default quota to be applied.  Can use K, M, G, P, or T [case insensitive]\n')
     exit(0)
 
 def dprint(message):
@@ -81,7 +88,6 @@ def qumulo_put(addr, api, body):
             print("Connection Errror: Retrying....")
             time.sleep(5)
             good = False
-    pp.pprint(res)
     results = json.loads(res.content.decode('utf-8'))
     if res.status_code == 200:
         return (results)
@@ -96,6 +102,7 @@ def load_exceptions(file):
             if line == "" or line.startswith('#'):
                 continue
             (edir,elimit) = line.split(',')
+            elimit = compute_quota(elimit)
             if not edir.endswith('/'):
                 edir = edir + '/'
             exceptions[edir] = int(elimit)
