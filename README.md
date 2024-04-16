@@ -5,9 +5,10 @@ This is a simple Python sctipt to allow bulk changes to directory quotas for all
 A quota of 0 cuts off all writes, a quota of less than 0 means no quota and any quota on that path will be deleted.
 
 <pre>
-Usage: q_bulk_quotas.py [-hD] [-c creds] [-t token] [-e exceptions] qumulo:path quota
+Usage: q_bulk_quotas.py [-hDv] [-c creds] [-t token] [-e exceptions] qumulo:path quota \n"
 -h | --help : Show help/usage
--D | --DEBUG : dump debug info
+-v | --verbose: Print out each path name along the way
+-D | --DEBUG : dump debug info.  Also enables verbose
 -c | --creds : Login credentials format user:password
 -t | --token : Use an auth token
 -e | --exceptions : Read exceptions from a given file
