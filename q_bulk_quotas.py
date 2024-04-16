@@ -14,9 +14,10 @@ pp = pprint.PrettyPrinter(indent=4)
 
 
 def usage():
-    sys.stderr.write("Usage: q_bulk_quotas.py [-hD] [-c creds] [-t token] [-e exceptions] qumulo:path quota \n")
+    sys.stderr.write("Usage: q_bulk_quotas.py [-hDv] [-c creds] [-t token] [-e exceptions] qumulo:path quota \n")
     sys.stderr.write("-h | --help : Show help/usage\n")
-    sys.stderr.write('-D | --DEBUG : dump debug info\n')
+    sys.stderr.write('-v | --verbose: Print out each path name along the way\n')
+    sys.stderr.write('-D | --DEBUG : dump debug info.  Also enables verbose\n')
     sys.stderr.write('-c | --creds : Login credentials format user:password\n')
     sys.stderr.write('-t | --token : Use an auth token\n')
     sys.stderr.write('-e | --exceptions : Read exceptions from a given file\n')
