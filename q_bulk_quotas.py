@@ -70,7 +70,6 @@ def qumulo_get(addr, api):
         exit(3)
 
 def qumulo_put(addr, api, body):
-    print(type(body))
     dprint("API_PUT: " + api + " : " + str(body))
     dprint("BODY: " + str(body))
     good = False
@@ -90,6 +89,18 @@ def qumulo_put(addr, api, body):
         sys.stderr.write("API ERROR: " + str(res.status_code) + '\n')
         exit(3)
 
+def load_exceptions(file):
+    with open(file, 'r') as fp:
+        for n, line in enumerate(fp):
+            line = line.rstrip()
+            if line == "" or line.startswith('#'):
+                continue
+            (edir,elimit) = line.split(',')
+            if not edir.endswith('/'):
+                edir = edir + '/'
+            exceptions[edir] = int(elimit)
+    fp.close()
+    return(exceptions)
 def qumulo_post(addr, api, body):
     dprint("API_POST: " + api + " : " + str(body))
     good = False
@@ -98,12 +109,29 @@ def qumulo_post(addr, api, body):
         try:
             res = requests.post('https://' + addr + '/api' + api, headers=auth, data=body, verify=False, timeout=timeout)
         except requests.exceptions.ConnectionError:
-            print("Connection Errror: Retrying....")
+            print("Connection Error: Retrying....")
             time.sleep(5)
             good = False
     results = json.loads(res.content.decode('utf-8'))
     if res.status_code == 200:
         return (results)
+    else:
+        sys.stderr.write("API ERROR: " + str(res.status_code) + '\n')
+        exit(3)
+
+def qumulo_delete(addr, api):
+    dprint("API_DELETE: " + api)
+    good = False
+    while not good:
+        good = True
+        try:
+            res = requests.delete('https://' + addr + '/api' + api, headers=auth, verify=False, timeout=timeout)
+        except requests.exceptions.ConnectionError:
+            print("Connection Error...Retrying...")
+            time.sleep(5)
+            good = False
+    if res.status_code == 200:
+        return(res)
     else:
         sys.stderr.write("API ERROR: " + str(res.status_code) + '\n')
         exit(3)
@@ -168,6 +196,9 @@ if __name__ == "__main__":
     except:
         usage()
     quota = compute_quota(quota)
+    if exceptions_file:
+        exceptions = load_exceptions(exceptions_file)
+    dprint("EXCEPTIONS: " + str(exceptions))
     auth = api_login(qumulo, user, password, token)
     dprint(str(auth))
     net_data = requests.get('https://' + qumulo + '/v2/network/interfaces/1/status/', headers=auth,
@@ -212,7 +243,7 @@ if __name__ == "__main__":
             top_dir = qumulo_get(addr_list[get_node_addr(addr_list)]['address'], next)
             if top_dir == "404":
                 print("GOT 404 in else loop: " + + top_id)
-        pp.pprint(top_dir)
+#        pp.pprint(top_dir)
         for dirent in top_dir['files']:
             if dirent['type'] == "FS_FILE_TYPE_DIRECTORY":
                 dir_list[dirent['path']] = {'name': dirent['name'], 'id': dirent['id']}
@@ -222,15 +253,31 @@ if __name__ == "__main__":
                 done = True
         except:
             done = True
-    pp.pprint(dir_list)
+#    pp.pprint(dir_list)
     for d in dir_list.keys():
         body = json.dumps({'id': str(dir_list[d]['id']), 'limit': str(quota)})
         if dir_list[d]['id'] in quotas.keys():
-            if quotas[dir_list[d]['id']] == quota:
+            if d in exceptions.keys():
+                if exceptions[d] == 0:
+                    print('Deleting ' + d)
+                    qumulo_delete(addr_list[get_node_addr(addr_list)]['address'], '/v1/files/quotas/' + dir_list[d]['id'])
+                    continue
+                elif int(quotas[dir_list[d]['id']]) != exceptions[d]:
+                    print("Updating " + d)
+                    body = json.dumps({'id': str(dir_list[d]['id']), 'limit': str(exceptions[d])})
+                    qumulo_put(addr_list[get_node_addr(addr_list)]['address'], '/v1/files/quotas/' + dir_list[d]['id'],body)
+                else:
+                    continue
+            elif int(quotas[dir_list[d]['id']]) == quota:
                 continue
             print("Updating " + d)
             qumulo_put(addr_list[get_node_addr(addr_list)]['address'], '/v1/files/quotas/' + dir_list[d]['id'], body)
         else:
+            if d in exceptions.keys():
+                if exceptions[d] != 0:
+                    body = json.dumps({'id': str(dir_list[d]['id']), 'limit': str(exceptions[d])})
+                else:
+                    continue
             print("Adding quota to " + d)
             qumulo_post(addr_list[get_node_addr(addr_list)]['address'], '/v1/files/quotas/', body)
 
