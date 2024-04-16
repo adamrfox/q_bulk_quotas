@@ -30,6 +30,9 @@ def dprint(message):
         dfh.write(message + "\n")
         dfh.close()
 
+def vprint(message):
+    if VERBOSE:
+        print(message)
 def api_login(qumulo, user, password, token):
     headers = {'Content-Type': 'application/json'}
     if not token:
@@ -169,6 +172,7 @@ def compute_quota (quota):
 
 if __name__ == "__main__":
     DEBUG = False
+    VERBOSE = False
     token = ""
     user = ""
     password = ""
@@ -181,13 +185,16 @@ if __name__ == "__main__":
     quotas = {}
     q = {}
 
-    optlist, args = getopt.getopt(sys.argv[1:],'hDt:c:e:', ['--help', '--DEBUG', '--token=', '--creds',
-                                                            '--exceptions='])
+    optlist, args = getopt.getopt(sys.argv[1:],'hDt:c:e:v', ['--help', '--DEBUG', '--token=', '--creds',
+                                                            '--exceptions=', '--verbose'])
     for opt, a in optlist:
         if opt in ['-h', '--help']:
             usage()
         if opt in ('-D', '--DEBUG'):
-            DEBUG = 1
+            DEBUG = True
+            VERBOSE = True
+        if opt in ('-v', '--verbose'):
+            VERBOSE = True
         if opt in ('-t', '--token'):
             token = a
         if opt in ('-c', '--creds'):
@@ -224,6 +231,8 @@ if __name__ == "__main__":
             quota_list = qumulo_get(addr_list[get_node_addr(addr_list)]['address'], '/v1/files/quotas/?limit=500')
         else:
             quota_list = qumulo_get(addr_list[get_node_addr(addr_list)]['address'], next)
+        if quota_list['quotas'] == []:
+            break
         for q in quota_list['quotas']:
             quotas[q['id']] = q['limit']
             try:
@@ -261,8 +270,8 @@ if __name__ == "__main__":
         except:
             done = True
 #    pp.pprint(dir_list)
-    print(type(quota))
     for d in dir_list.keys():
+        vprint("Checking " + d)
         body = json.dumps({'id': str(dir_list[d]['id']), 'limit': str(quota)})
         if dir_list[d]['id'] in quotas.keys():
             if d in exceptions.keys():
