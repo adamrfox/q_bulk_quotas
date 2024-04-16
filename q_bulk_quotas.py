@@ -163,7 +163,7 @@ def compute_quota (quota):
             sys.stderr.write("Acceptable unit sizes are 'K', 'M', 'G', 'T', 'P' case insensitive")
             exit(1)
     else:
-        size = quota
+        size = int(quota)
     dprint("QUOTA SIZE = " + str(size))
     return(size)
 
@@ -261,32 +261,38 @@ if __name__ == "__main__":
         except:
             done = True
 #    pp.pprint(dir_list)
+    print(type(quota))
     for d in dir_list.keys():
         body = json.dumps({'id': str(dir_list[d]['id']), 'limit': str(quota)})
         if dir_list[d]['id'] in quotas.keys():
             if d in exceptions.keys():
-                if exceptions[d] == 0:
-                    print('Deleting ' + d)
+                if exceptions[d] < 0:
+                    print('Deleting quota from ' + d)
                     qumulo_delete(addr_list[get_node_addr(addr_list)]['address'], '/v1/files/quotas/' + dir_list[d]['id'])
                     continue
                 elif int(quotas[dir_list[d]['id']]) != exceptions[d]:
-                    print("Updating " + d)
+                    print("Updating quota on " + d)
                     body = json.dumps({'id': str(dir_list[d]['id']), 'limit': str(exceptions[d])})
                     qumulo_put(addr_list[get_node_addr(addr_list)]['address'], '/v1/files/quotas/' + dir_list[d]['id'],body)
                 else:
                     continue
             elif int(quotas[dir_list[d]['id']]) == quota:
                 continue
-            print("Updating " + d)
-            qumulo_put(addr_list[get_node_addr(addr_list)]['address'], '/v1/files/quotas/' + dir_list[d]['id'], body)
+            if quota >= 0:
+                print("Updating quota on " + d)
+                qumulo_put(addr_list[get_node_addr(addr_list)]['address'], '/v1/files/quotas/' + dir_list[d]['id'], body)
+            else:
+                print("Deleting quota from " + d)
+                qumulo_delete(addr_list[get_node_addr(addr_list)]['address'], '/v1/files/quotas/' + dir_list[d]['id'])
         else:
             if d in exceptions.keys():
-                if exceptions[d] != 0:
+                if exceptions[d] >= 0:
                     body = json.dumps({'id': str(dir_list[d]['id']), 'limit': str(exceptions[d])})
                 else:
                     continue
-            print("Adding quota to " + d)
-            qumulo_post(addr_list[get_node_addr(addr_list)]['address'], '/v1/files/quotas/', body)
+            if quota >= 0:
+                print("Adding quota to " + d)
+                qumulo_post(addr_list[get_node_addr(addr_list)]['address'], '/v1/files/quotas/', body)
 
 
 

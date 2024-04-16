@@ -1,5 +1,7 @@
-# Excpetions file Example.  CSV format, paths,limit.  0 limit means no quota
+# Excpetions file Example.  CSV format, paths,limit.
+# 0 means cut off all new writes
+# < 0 means no quota
 #
 # /nfs/lots,25G
 # /nfs/p9,1T
-# /nfs/p0,0
+# /nfs/p0,-1
