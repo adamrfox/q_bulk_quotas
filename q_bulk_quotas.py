@@ -44,6 +44,7 @@ def api_login(qumulo, user, password, token):
             exit(2)
     else:
         auth_headers = {'accept': 'application/json', 'Content-type': 'application/json', 'Authorization': 'Bearer ' + token}
+    dprint("AUTH_HEADERS: " + str(auth_headers))
     return(auth_headers)
 
 def qumulo_get(addr, api):
@@ -68,6 +69,44 @@ def qumulo_get(addr, api):
         sys.stderr.write(str(res.content) + "\n")
         exit(3)
 
+def qumulo_put(addr, api, body):
+    print(type(body))
+    dprint("API_PUT: " + api + " : " + str(body))
+    dprint("BODY: " + str(body))
+    good = False
+    while not good:
+        good = True
+        try:
+            res = requests.put('https://' + addr + '/api' + api, headers=auth, data=body, verify=False, timeout=timeout)
+        except requests.exceptions.ConnectionError:
+            print("Connection Errror: Retrying....")
+            time.sleep(5)
+            good = False
+    pp.pprint(res)
+    results = json.loads(res.content.decode('utf-8'))
+    if res.status_code == 200:
+        return (results)
+    else:
+        sys.stderr.write("API ERROR: " + str(res.status_code) + '\n')
+        exit(3)
+
+def qumulo_post(addr, api, body):
+    dprint("API_POST: " + api + " : " + str(body))
+    good = False
+    while not good:
+        good = True
+        try:
+            res = requests.post('https://' + addr + '/api' + api, headers=auth, data=body, verify=False, timeout=timeout)
+        except requests.exceptions.ConnectionError:
+            print("Connection Errror: Retrying....")
+            time.sleep(5)
+            good = False
+    results = json.loads(res.content.decode('utf-8'))
+    if res.status_code == 200:
+        return (results)
+    else:
+        sys.stderr.write("API ERROR: " + str(res.status_code) + '\n')
+        exit(3)
 def get_node_addr(addr_list):
     return(randrange(len(addr_list)))
 
@@ -86,7 +125,7 @@ def compute_quota (quota):
         elif unit in ('k', 'K'):
             size = size * 1000
         else:
-            sys.stderr(write("Accetbale unit sizes are 'K', 'M', 'G', 'T', 'P' case insentive"))
+            sys.stderr.write("Acceptable unit sizes are 'K', 'M', 'G', 'T', 'P' case insensitive")
             exit(1)
     else:
         size = quota
@@ -183,3 +222,18 @@ if __name__ == "__main__":
                 done = True
         except:
             done = True
+    pp.pprint(dir_list)
+    for d in dir_list.keys():
+        body = json.dumps({'id': str(dir_list[d]['id']), 'limit': str(quota)})
+        if dir_list[d]['id'] in quotas.keys():
+            if quotas[dir_list[d]['id']] == quota:
+                continue
+            print("Updating " + d)
+            qumulo_put(addr_list[get_node_addr(addr_list)]['address'], '/v1/files/quotas/' + dir_list[d]['id'], body)
+        else:
+            print("Adding quota to " + d)
+            qumulo_post(addr_list[get_node_addr(addr_list)]['address'], '/v1/files/quotas/', body)
+
+
+
+
