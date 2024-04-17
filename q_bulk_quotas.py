@@ -284,6 +284,7 @@ if __name__ == "__main__":
                     print("Updating quota on " + d)
                     body = json.dumps({'id': str(dir_list[d]['id']), 'limit': str(exceptions[d])})
                     qumulo_put(addr_list[get_node_addr(addr_list)]['address'], '/v1/files/quotas/' + dir_list[d]['id'],body)
+                    continue
                 else:
                     continue
             elif int(quotas[dir_list[d]['id']]) == quota:
