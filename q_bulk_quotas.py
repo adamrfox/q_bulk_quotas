@@ -188,9 +188,7 @@ if __name__ == "__main__":
 
     optlist, args = getopt.getopt(sys.argv[1:],'hDt:c:e:v', ['help', 'DEBUG', 'token=', 'creds',
                                                             'exceptions=', 'verbose'])
-    print(optlist)
     for opt, a in optlist:
-        print(opt)
         if opt in ['-h', '--help']:
             usage()
         if opt in ('-D', '--DEBUG'):
