@@ -21,7 +21,7 @@ def usage():
     sys.stderr.write('-c | --creds : Login credentials format user:password\n')
     sys.stderr.write('-t | --token : Use an auth token\n')
     sys.stderr.write('-e | --exceptions : Read exceptions from a given file\n')
-    sys.stderr.write('qumulo:path : Name or IP address of a Qumulo node and the parent path of the quotas [colon speparted]\n')
+    sys.stderr.write('qumulo:path : Name or IP address of a Qumulo node and the parent path of the quotas [colon separated]\n')
     sys.stderr.write('quota : Default quota to be applied.  Can use K, M, G, P, or T [case insensitive]\n')
     exit(0)
 
