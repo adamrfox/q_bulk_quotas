@@ -12,7 +12,7 @@ Usage: q_bulk_quotas.py [-hDv] [-c creds] [-t token] [-e exceptions] qumulo:path
 -c | --creds : Login credentials format user:password
 -t | --token : Use an auth token
 -e | --exceptions : Read exceptions from a given file
-qumulo:path : Name or IP address of a Qumulo node and the parent path of the quotas [colon speparted]
+qumulo:path : Name or IP address of a Qumulo node and the parent path of the quotas [colon separated]
 quota : Default quota to be applied.  Can use K, M, G, P, or T [case insensitive]
 </pre>
 
