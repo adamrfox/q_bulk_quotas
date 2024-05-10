@@ -14,12 +14,13 @@ pp = pprint.PrettyPrinter(indent=4)
 
 
 def usage():
-    sys.stderr.write("Usage: q_bulk_quotas.py [-hDv] [-c creds] [-t token] [-e exceptions] qumulo:path quota \n")
+    sys.stderr.write("Usage: q_bulk_quotas.py [-hDv] [-c creds] [-t token] [-f token_file] [-e exceptions] qumulo:path quota \n")
     sys.stderr.write("-h | --help : Show help/usage\n")
     sys.stderr.write('-v | --verbose: Print out each path name along the way\n')
     sys.stderr.write('-D | --DEBUG : dump debug info.  Also enables verbose\n')
     sys.stderr.write('-c | --creds : Login credentials format user:password\n')
     sys.stderr.write('-t | --token : Use an auth token\n')
+    sys.stderr.write('-f | --token-file : Use a token file generated from qq auth_create_token\n')
     sys.stderr.write('-e | --exceptions : Read exceptions from a given file\n')
     sys.stderr.write('qumulo:path : Name or IP address of a Qumulo node and the parent path of the quotas [colon separated]\n')
     sys.stderr.write('quota : Default quota to be applied.  Can use K, M, G, P, or T [case insensitive]\n')
@@ -149,6 +150,14 @@ def qumulo_delete(addr, api):
 def get_node_addr(addr_list):
     return(randrange(len(addr_list)))
 
+def get_token_from_file(file):
+    with open(file, 'r') as fp:
+        tf = fp.read().strip()
+    fp.close()
+    t_data = json.loads(tf)
+    dprint(t_data['bearer_token'])
+    return(t_data['bearer_token'])
+
 def compute_quota (quota):
     if quota[-1].isalpha():
         unit = quota[-1]
@@ -175,6 +184,7 @@ if __name__ == "__main__":
     DEBUG = False
     VERBOSE = False
     token = ""
+    token_file = ""
     user = ""
     password = ""
     headers = {}
@@ -186,8 +196,8 @@ if __name__ == "__main__":
     quotas = {}
     q = {}
 
-    optlist, args = getopt.getopt(sys.argv[1:],'hDt:c:e:v', ['help', 'DEBUG', 'token=', 'creds',
-                                                            'exceptions=', 'verbose'])
+    optlist, args = getopt.getopt(sys.argv[1:],'hDt:c:f:e:v', ['help', 'DEBUG', 'token=', 'creds=',
+                                                            'token-file=', 'exceptions=', 'verbose'])
     for opt, a in optlist:
         if opt in ['-h', '--help']:
             usage()
@@ -198,6 +208,8 @@ if __name__ == "__main__":
             VERBOSE = True
         if opt in ('-t', '--token'):
             token = a
+        if opt in ('-f', '--token-file'):
+            token = get_token_from_file(a)
         if opt in ('-c', '--creds'):
             (user, password) = a.split(':')
         if opt in ('-e', '--exceptions'):
