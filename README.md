@@ -21,7 +21,7 @@ Exceptions can be granted with an CSV file and the -e option.  An example is inc
 ## Using Tokens from a file
 If you want to run the script non-interactively, you can generate an access token using the qq command:
 <pre>
-  qq --host _your-host_ auth_create_access_token -f _file_ _user_
+  qq --host [your-host] auth_create_access_token -f [file] [user]
 </pre>
 
 This file can then be used as the argument to the -f flag.
