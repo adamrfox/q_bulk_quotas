@@ -31,7 +31,7 @@ It may be desireable to have the script run as a user with the least required pr
 generating a role with the following permissions
 <ul>
   <li>FS_ATTRIBUTES_READ</li>
-  <li>NETOWRK_READ</li>
+  <li>NETWORK_READ</li>
   <li>QUOTA_READ</li>
   <li>QUOTA_WRITE</li>
 </ul>
